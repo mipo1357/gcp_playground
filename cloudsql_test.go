@@ -59,13 +59,13 @@ func dbConfigFromEnv(t *testing.T, ct connType) dbConfig {
 		return n
 	}
 	d := dbConfig{
-		user:         testEnv("MYSQL_USER"),
-		pass:         testEnv("MYSQL_PASSWORD"),
-		name:         testEnv("MYSQL_DATABASE"),
-		port:         testEnv("MYSQL_PORT"),
-		host:         testEnv("MYSQL_HOST"),
-		unixPath:     testEnv("MYSQL_UNIX_SOCKET"),
-		instConnName: testEnv("MYSQL_INSTANCE"),
+		user:         testEnv("POSTGRES_USER"),
+		pass:         testEnv("POSTGRES_PASSWORD"),
+		name:         testEnv("POSTGRES_DATABASE"),
+		port:         testEnv("POSTGRES_PORT"),
+		host:         testEnv("POSTGRES_HOST"),
+		unixPath:     testEnv("POSTGRES_UNIX_SOCKET"),
+		instConnName: testEnv("POSTGRES_INSTANCE"),
 	}
 	// Zero out all but requested conn type
 	switch ct {

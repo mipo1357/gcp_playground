@@ -19,7 +19,7 @@ import (
 	"net/http"
 	"os"
 
-	cloudsql "github.com/GoogleCloudPlatform/golang-samples/cloudsql/mysql/database-sql"
+	cloudsql "github.com/GoogleCloudPlatform/golang-samples/cloudsql/postgres/database-sql"
 )
 
 func main() {

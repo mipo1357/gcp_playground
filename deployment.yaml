@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START cloud_sql_mysql_databasesql_gke_quickstart_deployment]
+# [START cloud_sql_postgres_databasesql_gke_quickstart_deployment]
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -41,7 +41,7 @@ spec:
         - name: INSTANCE_HOST
           value: "127.0.0.1"
         - name: DB_PORT
-          value: "3306"
+          value: "5432"
         - name: DB_USER
           valueFrom:
             secretKeyRef:
@@ -72,9 +72,9 @@ spec:
           # tcp should be set to the port the proxy should listen on
           # and should match the DB_PORT value set above.
           # Defaults: MySQL: 3306, Postgres: 5432, SQLServer: 1433
-          - "-instances=<INSTANCE_CONNECTION_NAME>=tcp:3306"
+          - "-instances=<INSTANCE_CONNECTION_NAME>=tcp:5432"
         securityContext:
           # The default Cloud SQL proxy image runs as the
           # "nonroot" user and group (uid: 65532) by default.
           runAsNonRoot: true
-# [END cloud_sql_mysql_databasesql_gke_quickstart_deployment]
+# [END cloud_sql_postgres_databasesql_gke_quickstart_deployment]

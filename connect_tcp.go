@@ -12,26 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// [START cloud_sql_mysql_databasesql_connect_tcp]
-// [START cloud_sql_mysql_databasesql_connect_tcp_sslcerts]
-// [START cloud_sql_mysql_databasesql_sslcerts]
+// [START cloud_sql_postgres_databasesql_connect_tcp]
+// [START cloud_sql_postgres_databasesql_connect_tcp_sslcerts]
+// [START cloud_sql_postgres_databasesql_sslcerts]
 package cloudsql
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"database/sql"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
-	"github.com/go-sql-driver/mysql"
+	// Note: If connecting using the App Engine Flex Go runtime, use
+	// "github.com/jackc/pgx/stdlib" instead, since v4 requires
+	// Go modules which are not supported by App Engine Flex.
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 // connectTCPSocket initializes a TCP connection pool for a Cloud SQL
-// instance of MySQL.
+// instance of Postgres.
 func connectTCPSocket() (*sql.DB, error) {
 	mustGetenv := func(k string) string {
 		v := os.Getenv(k)
@@ -47,15 +46,15 @@ func connectTCPSocket() (*sql.DB, error) {
 	var (
 		dbUser    = mustGetenv("DB_USER")       // e.g. 'my-db-user'
 		dbPwd     = mustGetenv("DB_PASS")       // e.g. 'my-db-password'
-		dbName    = mustGetenv("DB_NAME")       // e.g. 'my-database'
-		dbPort    = mustGetenv("DB_PORT")       // e.g. '3306'
 		dbTCPHost = mustGetenv("INSTANCE_HOST") // e.g. '127.0.0.1' ('172.17.0.1' if deployed to GAE Flex)
+		dbPort    = mustGetenv("DB_PORT")       // e.g. '5432'
+		dbName    = mustGetenv("DB_NAME")       // e.g. 'my-database'
 	)
 
-	dbURI := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
-		dbUser, dbPwd, dbTCPHost, dbPort, dbName)
+	dbURI := fmt.Sprintf("host=%s user=%s password=%s port=%s database=%s",
+		dbTCPHost, dbUser, dbPwd, dbPort, dbName)
 
-	// [END cloud_sql_mysql_databasesql_connect_tcp]
+	// [END cloud_sql_postgres_databasesql_connect_tcp]
 	// (OPTIONAL) Configure SSL certificates
 	// For deployments that connect directly to a Cloud SQL instance without
 	// using the Cloud SQL Proxy, configuring SSL certificates will ensure the
@@ -65,30 +64,13 @@ func connectTCPSocket() (*sql.DB, error) {
 			dbCert = mustGetenv("DB_CERT") // e.g. '/path/to/my/client-cert.pem'
 			dbKey  = mustGetenv("DB_KEY")  // e.g. '/path/to/my/client-key.pem'
 		)
-		pool := x509.NewCertPool()
-		pem, err := ioutil.ReadFile(dbRootCert)
-		if err != nil {
-			return nil, err
-		}
-		if ok := pool.AppendCertsFromPEM(pem); !ok {
-			return nil, errors.New("unable to append root cert to pool")
-		}
-		cert, err := tls.LoadX509KeyPair(dbCert, dbKey)
-		if err != nil {
-			return nil, err
-		}
-		mysql.RegisterTLSConfig("cloudsql", &tls.Config{
-			RootCAs:               pool,
-			Certificates:          []tls.Certificate{cert},
-			InsecureSkipVerify:    true,
-			VerifyPeerCertificate: verifyPeerCertFunc(pool),
-		})
-		dbURI += "&tls=cloudsql"
+		dbURI += fmt.Sprintf(" sslmode=require sslrootcert=%s sslcert=%s sslkey=%s",
+			dbRootCert, dbCert, dbKey)
 	}
-	// [START cloud_sql_mysql_databasesql_connect_tcp]
+	// [START cloud_sql_postgres_databasesql_connect_tcp]
 
 	// dbPool is the pool of database connections.
-	dbPool, err := sql.Open("mysql", dbURI)
+	dbPool, err := sql.Open("pgx", dbURI)
 	if err != nil {
 		return nil, fmt.Errorf("sql.Open: %v", err)
 	}
@@ -100,28 +82,6 @@ func connectTCPSocket() (*sql.DB, error) {
 	return dbPool, nil
 }
 
-// [END cloud_sql_mysql_databasesql_connect_tcp]
-
-// verifyPeerCertFunc returns a function that verifies the peer certificate is
-// in the cert pool.
-func verifyPeerCertFunc(pool *x509.CertPool) func([][]byte, [][]*x509.Certificate) error {
-	return func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
-		if len(rawCerts) == 0 {
-			return errors.New("no certificates available to verify")
-		}
-
-		cert, err := x509.ParseCertificate(rawCerts[0])
-		if err != nil {
-			return err
-		}
-
-		opts := x509.VerifyOptions{Roots: pool}
-		if _, err = cert.Verify(opts); err != nil {
-			return err
-		}
-		return nil
-	}
-}
-
-// [END cloud_sql_mysql_databasesql_sslcerts]
-// [END cloud_sql_mysql_databasesql_connect_tcp_sslcerts]
+// [END cloud_sql_postgres_databasesql_sslcerts]
+// [END cloud_sql_postgres_databasesql_connect_tcp_sslcerts]
+// [END cloud_sql_postgres_databasesql_connect_tcp]

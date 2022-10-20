@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0.27
+    platform: linux/x86_64
+    container_name: db
+    environment:
+      MYSQL_DATABASE: test-db
+      MYSQL_USER: test-user
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+
+  go_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: go_server
+    container_name: go_server
+    tty: true
+    environment:
+      DB_NAME: test-db
+      DB_USER: test-user
+      DB_PASS: root
+      DB_PORT: 3306
+      INSTANCE_HOST: db
+    ports:
+      - "8080:8080"
+    depends_on: 
+      - db
