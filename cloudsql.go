@@ -141,18 +141,19 @@ func mustConnect() *sql.DB {
 
 	// Use a TCP socket when INSTANCE_HOST (e.g., 127.0.0.1) is defined
 	if os.Getenv("INSTANCE_HOST") != "" {
+		log.Println(os.Getenv("INSTANCE_HOST"))
 		db, err = connectTCPSocket()
 		if err != nil {
 			log.Fatalf("connectTCPSocket: unable to connect: %s", err)
 		}
 	}
 	// Use a Unix socket when INSTANCE_UNIX_SOCKET (e.g., /cloudsql/proj:region:instance) is defined.
-	if os.Getenv("INSTANCE_UNIX_SOCKET") != "" {
-		db, err = connectUnixSocket()
-		if err != nil {
-			log.Fatalf("connectUnixSocket: unable to connect: %s", err)
-		}
-	}
+	// if os.Getenv("INSTANCE_UNIX_SOCKET") != "" {
+	// 	db, err = connectUnixSocket()
+	// 	if err != nil {
+	// 		log.Fatalf("connectUnixSocket: unable to connect: %s", err)
+	// 	}
+	// }
 
 	// Use the connector when INSTANCE_CONNECTION_NAME (proj:region:instance) is defined.
 	if os.Getenv("INSTANCE_CONNECTION_NAME") != "" {
