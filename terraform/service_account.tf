@@ -22,8 +22,8 @@ resource "google_service_account" "github_actions" {
 resource "google_iam_workload_identity_pool" "github" {
   provider                  = google-beta
   project                   = var.project
-  workload_identity_pool_id = "github4"
-  display_name              = "github4"
+  workload_identity_pool_id = "github5"
+  display_name              = "github5"
   description               = "Workload Identity Pool for GitHub Actions"
 }
 

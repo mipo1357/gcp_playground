@@ -9,7 +9,7 @@ resource "google_cloud_run_service" "default" {
         image = var.container_image
         env {
           name  = "INSTANCE_UNIX_SOCKET"
-          value = "/cloudsql/${var.project}:${var.location}:${google_sql_database_instance.postgres.name}"
+          value = "cloudsql/${var.project}:${var.location}:${google_sql_database_instance.mysql.name}"
         }
         env {
           name  = "DB_NAME"
@@ -24,8 +24,12 @@ resource "google_cloud_run_service" "default" {
           value = google_sql_user.users.password
         }
         env {
-          name  = "DB_IAM_USER"
-          value = "${google_service_account.github_actions.name}@${var.project}.iam"
+          name  = "DB_PORT"
+          value = "3306"
+        }
+        env {
+          name  = "INSTANCE_HOST"
+          value = "${var.project}:${var.location}:${google_sql_database_instance.mysql.name}"
         }
       }
       service_account_name = google_service_account.github_actions.email
@@ -33,7 +37,7 @@ resource "google_cloud_run_service" "default" {
     metadata {
       annotations = {
         "autoscaling.knative.dev/maxScale"      = "1000"
-        "run.googleapis.com/cloudsql-instances" = google_sql_database_instance.postgres.connection_name
+        "run.googleapis.com/cloudsql-instances" = google_sql_database_instance.mysql.connection_name
         "run.googleapis.com/client-name"        = "terraform"
       }
     }

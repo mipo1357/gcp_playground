@@ -1,4 +1,4 @@
-# Copyright 2020 Google LLC
+# Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,9 +42,9 @@ RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -
 
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder /app/server /app/server
-# Copy any certificates IFF present.
-COPY ./certs /app/certs
 
+# Copy any certificates IF present.
+COPY ./certs /app/certs
 # Run the web service on container startup.
 WORKDIR /app
 CMD ["/app/server"]

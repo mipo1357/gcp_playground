@@ -22,12 +22,12 @@ variable "container_image" {
 }
 
 variable "db_user_password" {
-  description = "password for the builtin postgresql user"
+  description = "password for the builtin mysql user"
   default     = ""
 }
 
 variable "db_root_user_password" {
-  description = "password for the root postgresql user"
+  description = "password for the root mysql user"
   default     = ""
 }
 

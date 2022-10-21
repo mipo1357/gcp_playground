@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// [START cloud_sql_postgres_databasesql_connect_connector]
+// [START cloud_sql_mysql_databasesql_connect_connector]
 package cloudsql
 
 import (
@@ -24,15 +24,14 @@ import (
 	"os"
 
 	"cloud.google.com/go/cloudsqlconn"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/go-sql-driver/mysql"
 )
 
 func connectWithConnector() (*sql.DB, error) {
 	mustGetenv := func(k string) string {
 		v := os.Getenv(k)
 		if v == "" {
-			log.Fatalf("Warning: %s environment variable not set.\n", k)
+			log.Fatalf("Warning: %s environment variable not set.", k)
 		}
 		return v
 	}
@@ -41,58 +40,33 @@ func connectWithConnector() (*sql.DB, error) {
 	// Cloud Secret Manager (https://cloud.google.com/secret-manager) to help
 	// keep secrets safe.
 	var (
-		// Either a DB_USER or a DB_IAM_USER should be defined. If both are
-		// defined, DB_IAM_USER takes precedence.
-		dbUser                 = os.Getenv("DB_USER")                   // e.g. 'my-db-user'
-		dbIAMUser              = os.Getenv("DB_IAM_USER")               // e.g. 'sa-name@project-id.iam'
+		dbUser                 = mustGetenv("DB_USER")                  // e.g. 'my-db-user'
 		dbPwd                  = mustGetenv("DB_PASS")                  // e.g. 'my-db-password'
 		dbName                 = mustGetenv("DB_NAME")                  // e.g. 'my-database'
 		instanceConnectionName = mustGetenv("INSTANCE_CONNECTION_NAME") // e.g. 'project:region:instance'
 		usePrivate             = os.Getenv("PRIVATE_IP")
 	)
-	if dbUser == "" && dbIAMUser == "" {
-		log.Fatal("Warning: One of DB_USER or DB_IAM_USER must be defined")
-	}
 
-	dsn := fmt.Sprintf("user=%s password=%s database=%s", dbUser, dbPwd, dbName)
-	config, err := pgx.ParseConfig(dsn)
+	d, err := cloudsqlconn.NewDialer(context.Background())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cloudsqlconn.NewDialer: %v", err)
 	}
-	config.DialFunc = func(ctx context.Context, network, instance string) (net.Conn, error) {
-		if dbIAMUser != "" {
-			// [START cloud_sql_postgres_databasesql_auto_iam_authn]
-			d, err := cloudsqlconn.NewDialer(ctx, cloudsqlconn.WithIAMAuthN())
-			if err != nil {
-				return nil, err
+	mysql.RegisterDialContext("cloudsqlconn",
+		func(ctx context.Context, addr string) (net.Conn, error) {
+			if usePrivate != "" {
+				return d.Dial(ctx, instanceConnectionName, cloudsqlconn.WithPrivateIP())
 			}
 			return d.Dial(ctx, instanceConnectionName)
-			// [END cloud_sql_postgres_databasesql_auto_iam_authn]
-		}
-		if usePrivate != "" {
-			d, err := cloudsqlconn.NewDialer(
-				ctx,
-				cloudsqlconn.WithDefaultDialOptions(cloudsqlconn.WithPrivateIP()),
-			)
-			if err != nil {
-				return nil, err
-			}
-			return d.Dial(ctx, instanceConnectionName)
-		}
-		// Use the Cloud SQL connector to handle connecting to the instance.
-		// This approach does *NOT* require the Cloud SQL proxy.
-		d, err := cloudsqlconn.NewDialer(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return d.Dial(ctx, instanceConnectionName)
-	}
-	dbURI := stdlib.RegisterConnConfig(config)
-	dbPool, err := sql.Open("pgx", dbURI)
+		})
+
+	dbURI := fmt.Sprintf("%s:%s@cloudsqlconn(localhost:3306)/%s?parseTime=true",
+		dbUser, dbPwd, dbName)
+
+	dbPool, err := sql.Open("mysql", dbURI)
 	if err != nil {
 		return nil, fmt.Errorf("sql.Open: %v", err)
 	}
 	return dbPool, nil
 }
 
-// [END cloud_sql_postgres_databasesql_connect_connector]
+// [END cloud_sql_mysql_databasesql_connect_connector]

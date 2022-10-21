@@ -1,4 +1,4 @@
-// Copyright 2020 Google LLC
+// Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ func getDB() *sql.DB {
 func migrateDB(db *sql.DB) error {
 	createVotes := `CREATE TABLE IF NOT EXISTS votes (
 		id SERIAL NOT NULL,
-		created_at timestamp NOT NULL,
+		created_at datetime NOT NULL,
 		candidate VARCHAR(6) NOT NULL,
 		PRIMARY KEY (id)
 	);`
@@ -176,26 +176,26 @@ func mustConnect() *sql.DB {
 // configureConnectionPool sets database connection pool properties.
 // For more information, see https://golang.org/pkg/database/sql
 func configureConnectionPool(db *sql.DB) {
-	// [START cloud_sql_postgres_databasesql_limit]
+	// [START cloud_sql_mysql_databasesql_limit]
 	// Set maximum number of connections in idle connection pool.
 	db.SetMaxIdleConns(5)
 
 	// Set maximum number of open connections to the database.
 	db.SetMaxOpenConns(7)
-	// [END cloud_sql_postgres_databasesql_limit]
+	// [END cloud_sql_mysql_databasesql_limit]
 
-	// [START cloud_sql_postgres_databasesql_lifetime]
+	// [START cloud_sql_mysql_databasesql_lifetime]
 	// Set Maximum time (in seconds) that a connection can remain open.
 	db.SetConnMaxLifetime(1800 * time.Second)
-	// [END cloud_sql_postgres_databasesql_lifetime]
+	// [END cloud_sql_mysql_databasesql_lifetime]
 
-	// [START cloud_sql_postgres_databasesql_backoff]
+	// [START cloud_sql_mysql_databasesql_backoff]
 	// database/sql does not support specifying backoff
-	// [END cloud_sql_postgres_databasesql_backoff]
-	// [START cloud_sql_postgres_databasesql_timeout]
+	// [END cloud_sql_mysql_databasesql_backoff]
+	// [START cloud_sql_mysql_databasesql_timeout]
 	// The database/sql package currently doesn't offer any functionality to
 	// configure connection timeout.
-	// [END cloud_sql_postgres_databasesql_timeout]
+	// [END cloud_sql_mysql_databasesql_timeout]
 }
 
 // Votes handles HTTP requests to alternatively show the voting app or to save a
@@ -255,10 +255,10 @@ func saveVote(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	// [START cloud_sql_postgres_databasesql_connection]
-	insertVote := "INSERT INTO votes(candidate, created_at) VALUES($1, NOW())"
+	// [START cloud_sql_mysql_databasesql_connection]
+	insertVote := "INSERT INTO votes(candidate, created_at) VALUES(?, NOW())"
 	_, err := db.Exec(insertVote, team)
-	// [END cloud_sql_postgres_databasesql_connection]
+	// [END cloud_sql_mysql_databasesql_connection]
 
 	if err != nil {
 		log.Printf("saveVote: unable to save vote: %v", err)

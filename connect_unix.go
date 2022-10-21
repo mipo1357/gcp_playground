@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// [START cloud_sql_postgres_databasesql_connect_unix]
+// [START cloud_sql_mysql_databasesql_connect_unix]
 package cloudsql
 
 import (
@@ -21,19 +21,16 @@ import (
 	"log"
 	"os"
 
-	// Note: If connecting using the App Engine Flex Go runtime, use
-	// "github.com/jackc/pgx/stdlib" instead, since v4 requires
-	// Go modules which are not supported by App Engine Flex.
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // connectUnixSocket initializes a Unix socket connection pool for
-// a Cloud SQL instance of Postgres.
+// a Cloud SQL instance of MySQL.
 func connectUnixSocket() (*sql.DB, error) {
 	mustGetenv := func(k string) string {
 		v := os.Getenv(k)
 		if v == "" {
-			log.Fatalf("Warning: %s environment variable not set.\n", k)
+			log.Fatalf("Warning: %s environment variable not set.", k)
 		}
 		return v
 	}
@@ -44,15 +41,15 @@ func connectUnixSocket() (*sql.DB, error) {
 	var (
 		dbUser         = mustGetenv("DB_USER")              // e.g. 'my-db-user'
 		dbPwd          = mustGetenv("DB_PASS")              // e.g. 'my-db-password'
-		unixSocketPath = mustGetenv("INSTANCE_UNIX_SOCKET") // e.g. '/cloudsql/project:region:instance'
 		dbName         = mustGetenv("DB_NAME")              // e.g. 'my-database'
+		unixSocketPath = mustGetenv("INSTANCE_UNIX_SOCKET") // e.g. '/cloudsql/project:region:instance'
 	)
 
-	dbURI := fmt.Sprintf("user=%s password=%s database=%s host=%s",
-		dbUser, dbPwd, dbName, unixSocketPath)
+	dbURI := fmt.Sprintf("%s:%s@unix(/%s)/%s?parseTime=true",
+		dbUser, dbPwd, unixSocketPath, dbName)
 
 	// dbPool is the pool of database connections.
-	dbPool, err := sql.Open("pgx", dbURI)
+	dbPool, err := sql.Open("mysql", dbURI)
 	if err != nil {
 		return nil, fmt.Errorf("sql.Open: %v", err)
 	}
@@ -64,4 +61,4 @@ func connectUnixSocket() (*sql.DB, error) {
 	return dbPool, nil
 }
 
-// [END cloud_sql_postgres_databasesql_connect_unix]
+// [END cloud_sql_mysql_databasesql_connect_unix]

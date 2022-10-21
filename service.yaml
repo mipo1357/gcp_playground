@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START cloud_sql_postgres_databasesql_gke_quickstart_service]
+# [START cloud_sql_mysql_databasesql_gke_quickstart_service]
 # The service provides a load-balancing proxy over the gke-cloud-sql-app
 # pods. By specifying the type as a 'LoadBalancer', Kubernetes Engine will
 # create an external HTTP load balancer.
@@ -27,4 +27,4 @@ spec:
   ports:
   - port: 80
     targetPort: 8080
-# [END cloud_sql_postgres_databasesql_gke_quickstart_service]
+# [END cloud_sql_mysql_databasesql_gke_quickstart_service]
